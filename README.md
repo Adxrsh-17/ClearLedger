@@ -1,113 +1,122 @@
-# Track A | Repair the register
+# ClearLedger
 
-**A four-hour engineering challenge.** You have inherited ClearLedger, a tiny local application used by a fictional service business to track invoices and payments. The owner needs a register they can trust before using it for a busy week.
+> **ClearLedger** is a lightweight, zero-dependency local financial register application for tracking customer invoices, payment allocations, outstanding balances, and overdue aging metrics.
 
-The application runs, and the starter tests pass. There are **six deliberately seeded defects** across the import, matching, reporting and browser workflows. The starter tests are only smoke checks. You do not need to find or fix all six to make a strong submission.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-19%20Passing-brightgreen.svg)]()
 
-Submit within **seven calendar days of the invitation**, with **four hours of total work**. Follow the independent-work and submission rules in `../START_HERE.md`.
+---
 
-## Your mission
+## 🌟 Key Features
 
-1. Investigate the app and record the important problems you can reproduce. Explain their impact and prioritize them.
-2. Fix the most important problems you can within the time limit. Add meaningful regression checks that would have caught those problems. Include one failing-before/passing-after reproduction and one additional input case you designed yourself. Record the commands and actual results; these are part of your testing, not a separate report.
-3. Add **one small improvement of your choice beyond restoring behaviours already required in BUSINESS_RULES.md**. Explain the owner problem it solves, show it working and include a check for it. If reliability work uses the available time, describe the proposed improvement and the first test you would run; an implemented, verified improvement receives more credit.
-4. Leave a concise `HANDOVER.md` using the shared template. Include reproducible evidence, remaining issues and exact run/test commands.
+- 📑 **Invoice & Payment Register**: Track customer invoices, paid amounts, remaining balances, and status (`open`, `paid`, `overdue`).
+- ⏳ **Overdue Aging Tracking**: Automated overdue detection and days past due (`days_overdue`) calculation with color-coded status badges.
+- 👥 **Customer Summary Breakdown**: Aggregate total invoiced, total paid, outstanding debt, and open items per customer.
+- ⚡ **Instant Live Search**: Client-side filtering across customer names, customer IDs, and invoice numbers.
+- 📥 **CSV Bulk Imports**: Row-level error isolation supporting UTF-8 BOM, whitespace trimming, and line-numbered rejection reasons.
+- 🔄 **Idempotent Storage & Strict Matching**: Prevents duplicate insertions, rejects conflicting record modifications, and enforces strict `(customer_id, invoice_number)` payment matching.
+- 🔗 **Unmatched Payment Resolution**: Automated re-matching endpoint (`POST /api/rematch`) to link orphaned payments when missing invoices arrive.
+- 📊 **CSV Report Exports**: Accurate monetary exports to 2 decimal places preserving exact cent balances.
 
-A focused patch is welcome. Preserve the public HTTP routes and response fields in `BUSINESS_RULES.md`; you may change internal code, add fields or routes, or improve the UI. A rewrite is unnecessary. If reliability work uses the available time, describe your proposed improvement instead of rushing it.
+---
 
-## What the owner has noticed
+## 🛠️ Tech Stack & Architecture
 
-> "The open-invoice view doesn't seem to agree with the overview."
->
-> "When I retry an import, the numbers sometimes move again."
->
-> "The downloaded report and the screen don't always agree."
->
-> "An import said it was complete, but I couldn't find the records I expected."
+- **Backend**: Python 3.10+ (Standard Library only: `sqlite3`, `http.server`, `csv`, `json`, `unittest`). Zero external pip dependencies required.
+- **Frontend**: Vanilla HTML5, CSS3 (Inter font, responsive Fintech design system), and JavaScript (Fetch API).
+- **Database**: SQLite3 (`PRAGMA foreign_keys = ON`).
 
-These are starting points, not a complete list of defects. Use `BUSINESS_RULES.md` as the intended behaviour. Create your own cases where useful; do not merely special-case the supplied sample files.
+---
 
-## Run it
+## 🚀 Quick Start & Installation
 
-Requires **Python 3.10+** and a modern browser. The starter has no third-party dependencies.
+### Prerequisites
+- Python 3.10 or higher.
+- A modern web browser.
 
-From the extracted `track-a` directory:
+### Setup Instructions
 
-```text
-python app.py
-```
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/Adxrsh-17/ClearLedger.git
+   cd ClearLedger
+   ```
 
-Open `http://127.0.0.1:8787`. Keep the terminal open. Press Ctrl+C to stop the server. If `python` is unavailable, try `py` on Windows or `python3` on macOS/Linux in every command below.
+2. **Restore Fixture Database**:
+   ```bash
+   python restore_fixture.py --replace
+   ```
 
-If the port is occupied, run `python app.py --port 8790` and open `http://127.0.0.1:8790` instead.
+3. **Start the Web Application**:
+   ```bash
+   python app.py
+   ```
 
-Run the existing tests:
+4. **Access the Dashboard**:
+   Open **`http://127.0.0.1:8787`** in your browser.
 
-```text
+---
+
+## 🧪 Testing & Verification
+
+Run the full automated unittest suite (19 passing unit, regression, and edge-case checks):
+
+```bash
 python -m unittest discover -s tests -v
 ```
 
-Reset the synthetic data **with the server stopped**:
+### Test Suite Structure
+- `tests/test_defects.py`: Core bug fixes & regression checks.
+- `tests/test_preservation.py`: Historical database fixture verification and restart persistence.
+- `tests/test_improvement.py`: Overdue aging calculation and payment re-matching features.
+- `tests/test_edge_cases.py`: UTF-8 BOM, whitespace trimming, empty inputs, and overpayments.
+- `tests/test_smoke.py`: Starter setup checks.
 
-```text
-python app.py reset-demo
-python app.py
+---
+
+## 🔌 API Documentation
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `GET /api/overview` | `GET` | Returns summary metrics (`invoice_count`, `open_count`, `outstanding`, `overdue_count`, `overdue_amount`), customer summary breakdown, all invoices, and unmatched payments. |
+| `GET /api/invoices?status={all\|open\|paid\|overdue}` | `GET` | Returns filtered array of invoice objects. |
+| `GET /api/export` | `GET` | Downloads CSV export of all invoices formatted to 2 decimal places. |
+| `POST /api/import?kind={invoices\|payments}` | `POST` | Accepts raw CSV text. Returns JSON object with `imported`, `skipped`, `rejected` counts and line `errors`. |
+| `POST /api/rematch` | `POST` | Triggers re-check of unmatched payments to link them to newly created matching invoices. |
+
+---
+
+## 📁 Directory Structure
+
+```
+ClearLedger/
+├── app.py                      # Application server entry point
+├── restore_fixture.py          # Database restoration utility
+├── HANDOVER.md                 # Technical handover & assessment verification notes
+├── STARTER_GUIDE.md            # Quick reference guide
+├── BUSINESS_RULES.md           # Business domain specification & invariants
+├── fixtures/
+│   ├── existing-register.sqlite3 # Synthetic historical database
+│   └── expected-records.json     # Reference baseline data
+├── ledger/
+│   ├── importing.py            # CSV parsing & row isolation
+│   ├── storage.py              # SQLite storage & idempotency logic
+│   ├── matching.py             # Payment matching & re-allocation engine
+│   ├── reporting.py            # Overview calculations & CSV export
+│   ├── validation.py           # Data normalization & regex validation
+│   └── http_app.py             # HTTP router & API handlers
+├── web/
+│   ├── index.html              # Dashboard layout
+│   ├── app.js                  # Frontend client logic & live search
+│   └── style.css               # Modern Fintech stylesheet & badges
+└── tests/                      # Automated unit test suite
 ```
 
-The working database is created locally at `.local/clearledger.sqlite3`. You may reset it for separate experiments. No accounts, credentials, external services or real financial records are needed.
+---
 
-## Preserve the owner's register
+## 👨‍💻 Author
 
-The owner already has records beyond the fresh demo. With the server stopped, load a working copy of the supplied register:
-
-```text
-python restore_fixture.py --replace
-python app.py
-```
-
-Your repair must preserve these existing records and allow valid new invoice and payment imports afterward, including after a restart. You may change the schema, but include and test any necessary migration. Resetting the working data does not satisfy this requirement. Keep the original files in `fixtures/` intact.
-
-`fixtures/README.md` specifies the records and expected starting totals. Historical payment corrections are outside scope; the supplied allocations are correct. Include your preservation check in your existing verification evidence, within the same four-hour limit.
-
-## Explore the starter
-
-| Location | Purpose |
-| --- | --- |
-| `app.py` | Startup and reset command |
-| `ledger/` | Validation, storage, importing, matching, reporting and HTTP routes |
-| `web/` | Browser interface in plain HTML, CSS and JavaScript |
-| `samples/` | Small CSVs for trying imports, including mixed validity and incorrect headers |
-| `fixtures/` | Existing register and documented records to preserve |
-| `restore_fixture.py` | Copies the supplied register into the working database while the server is stopped |
-| `tests/` | A few passing smoke tests, not a complete specification |
-| `BUSINESS_RULES.md` | Intended behaviour and public API |
-
-All money is synthetic INR. The customers are fictional. Accounting expertise is not required; the business rules define the task.
-
-## Suggested time budget
-
-| Activity | Minutes |
-| --- | ---: |
-| Read, run and investigate | 35 |
-| Prioritize, fix and add regression checks | 130 |
-| One useful improvement | 40 |
-| Clean-run verification and handover | 35 |
-| **Total, including setup and choosing a track** | **240** |
-
-Reallocate this budget as needed. Stop after four hours; explain what you would do next.
-
-## How this track is scored
-
-| Criterion | Weight | Evidence we value |
-| --- | ---: | --- |
-| Correctness and reliability | 30% | Fixes satisfy the rules without damaging other workflows |
-| Verification | 25% | Reproductions, regression tests and checks beyond the happy path |
-| Investigation and prioritization | 20% | A clear account of what broke, why it matters and what you tackled first |
-| Useful improvement | 15% | A justified, checked change beyond the required repairs |
-| Handover and tool judgment | 10% | Reproducible work, accurate limits and ownership of AI/tool output |
-
-We do not rank by the number of bugs claimed, visual polish, code volume or model used. Reading, reasoning and a carefully checked small change can distinguish a strong submission.
-
-## Submit
-
-Send the chosen track's code, tests and `HANDOVER.md`, following `../START_HERE.md`. Keep the supplied `fixtures/` and include any migration code. Exclude `.local/`, caches and virtual environments. Include any additional dependency instructions. No deployment is required.
+**Adarsh Pradeep**  
+- GitHub: [@Adxrsh-17](https://github.com/Adxrsh-17)  
+- Email: adarssshhhh17@gmail.com  
