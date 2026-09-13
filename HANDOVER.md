@@ -1,7 +1,7 @@
 # Handover
 
 - **Name**: Adarsh Pradeep
-- **Email used for this application**: adarsh.pradeep.dev@gmail.com
+- **Email used for this application**: adarssshhhh17@gmail.com
 - **Chosen track**: Track A (Repair the register)
 - **Why this track**: I enjoy auditing transactional logic, solving monetary precision and idempotency defects, and building reliable financial register software.
 - **Approximate total time, including setup and handover**: ~120 minutes
